@@ -1,10 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Website</title>
+    <title>Dhvanit OS 💻</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- React + Framer Motion CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: linear-gradient(135deg, #0f172a, #020617);
+            color: white;
+            overflow: hidden;
+        }
+
+        .desktop {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .icon {
+            width: 80px;
+            margin: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .window {
+            position: absolute;
+            width: 300px;
+            background: #1e293b;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .titlebar {
+            background: #38bdf8;
+            padding: 10px;
+            cursor: move;
+            border-radius: 10px 10px 0 0;
+            color: black;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .content {
+            padding: 15px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Hello Bro 🔥</h1>
-    <p>My first GitHub website</p>
+<div id="root"></div>
+
+<script>
+const { useState } = React;
+const { motion } = window["framer-motion"];
+
+function App() {
+    const [windows, setWindows] = useState([]);
+
+    function openApp(name, content) {
+        setWindows([...windows, {
+            id: Date.now(),
+            name,
+            content,
+            x: 100,
+            y: 100
+        }]);
+    }
+
+    function closeApp(id) {
+        setWindows(windows.filter(w => w.id !== id));
+    }
+
+    return (
+        React.createElement("div", { className: "desktop" },
+
+            // Desktop Icons
+            React.createElement("div", {
+                className: "icon",
+                onClick: () => openApp("AI Tool", "My AI Project 🚀")
+            }, "🤖 AI"),
+
+            React.createElement("div", {
+                className: "icon",
+                onClick: () => openApp("Harmonium", "🎹 Play Music App")
+            }, "🎹 Music"),
+
+            React.createElement("div", {
+                className: "icon",
+                onClick: () => openApp("Chat App", "💬 Chat System")
+            }, "💬 Chat"),
+
+            // Windows
+            windows.map(win =>
+                React.createElement(motion.div, {
+                    key: win.id,
+                    className: "window",
+                    drag: true,
+                    initial: { x: win.x, y: win.y }
+                },
+
+                    React.createElement("div", { className: "titlebar" },
+                        win.name,
+                        React.createElement("button", {
+                            onClick: () => closeApp(win.id)
+                        }, "❌")
+                    ),
+
+                    React.createElement("div", { className: "content" },
+                        win.content
+                    )
+                )
+            )
+        )
+    );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+
 </body>
 </html>
