@@ -1,146 +1,348 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dhvanit Octapad Pro 🥁</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dhvanit Octapad Pro</title>
+<style>
+  * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
+  body {
+    background: #020617;
+    color: #f1f5f9;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 6px; letter-spacing: 1px; }
+  .sub { font-size: 13px; color: #64748b; margin-bottom: 20px; text-align: center; }
 
-    <style>
-        body {
-            margin: 0;
-            background: #020617;
-            color: white;
-            font-family: Arial;
-            overflow: hidden;
-        }
+  /* ── Touchpad square ── */
+  #tracker {
+    width: 360px;
+    height: 200px;
+    border: 1.5px solid #334155;
+    border-radius: 12px;
+    background: #0f172a;
+    position: relative;
+    cursor: crosshair;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .gl-v {
+    position: absolute; top: 0; bottom: 0;
+    width: 1px; background: #1e293b;
+  }
+  .gl-h {
+    position: absolute; left: 0; right: 0;
+    height: 1px; background: #1e293b;
+  }
+  .zone-lbl {
+    position: absolute;
+    font-size: 11px; color: #475569;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none; gap: 2px;
+  }
+  .zone-lbl strong { font-size: 13px; color: #94a3b8; font-weight: 500; }
+  #dot {
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #7c3aed;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: none;
+    transition: background 0.08s;
+  }
+  .flash {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 4px;
+    animation: fa 0.18s ease-out forwards;
+  }
+  @keyframes fa { 0%{opacity:0.6} 100%{opacity:0} }
 
-        h1 {
-            text-align: center;
-            margin: 10px;
-        }
+  /* ── Pad grid ── */
+  #padgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 360px;
+    margin-bottom: 16px;
+  }
+  .pcell {
+    background: #0f172a;
+    border: 0.5px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .pcell.lit { background: #1e1b4b; border-color: #6d28d9; }
+  .pcell .pn { font-size: 13px; font-weight: 500; color: #e2e8f0; }
+  .pcell .pk { font-size: 11px; color: #475569; margin-top: 2px; }
+  .pcell.lit .pn { color: #a78bfa; }
 
-        #padArea {
-            width: 100vw;
-            height: 90vh;
-            position: relative;
-        }
-
-        .zone {
-            position: absolute;
-            border: 1px solid #1e293b;
-        }
-
-        .active {
-            background: rgba(250, 204, 21, 0.3);
-        }
-    </style>
+  /* ── Volume ── */
+  #volrow {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; color: #64748b;
+  }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 140px; height: 4px;
+    background: #334155; border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%; background: #7c3aed; cursor: pointer;
+  }
+  #volout { font-size: 13px; color: #94a3b8; min-width: 36px; }
+</style>
 </head>
-
 <body>
 
-<h1>🥁 Dhvanit Smart Octapad</h1>
-<p style="text-align:center;">Touch anywhere (trackpad supported)</p>
+<h1>🥁 Dhvanit Octapad Pro</h1>
+<p class="sub">Move cursor across zones to play &nbsp;|&nbsp; Keys: A S D / F G H &nbsp;|&nbsp; Touch supported</p>
 
-<div id="padArea"></div>
+<div id="tracker">
+  <div class="gl-v" style="left:33.33%"></div>
+  <div class="gl-v" style="left:66.66%"></div>
+  <div class="gl-h" style="top:50%"></div>
+  <div id="dot"></div>
+</div>
+
+<div id="padgrid"></div>
+
+<div id="volrow">
+  <label>Volume</label>
+  <input type="range" id="vol" min="0" max="1" step="0.05" value="0.7">
+  <span id="volout">70%</span>
+</div>
 
 <script>
-const padArea = document.getElementById("padArea");
+// ── Pad definitions ──────────────────────────────────────────────────────────
+const PADS = [
+  { id:"TL", name:"Kick",   key:"A", color:"#dc2626" },
+  { id:"TM", name:"Snare",  key:"S", color:"#2563eb" },
+  { id:"TR", name:"Hi-Hat", key:"D", color:"#16a34a" },
+  { id:"BL", name:"Clap",   key:"F", color:"#d97706" },
+  { id:"BM", name:"Tom",    key:"G", color:"#7c3aed" },
+  { id:"BR", name:"Crash",  key:"H", color:"#db2777" },
+];
 
-// define zones (6 parts)
-const soundsMap = {
-    "TL": "kick",
-    "TM": "snare",
-    "TR": "hihat",
-    "BL": "clap",
-    "BM": "tom",
-    "BR": "crash"
-};
+// ── AudioContext ─────────────────────────────────────────────────────────────
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+let vol = 0.7;
 
-// preload sounds
-const sounds = {};
-for (let key in soundsMap) {
-    const name = soundsMap[key];
-    sounds[name] = new Audio("sounds/" + name + ".mp3");
+function resume() { if (ctx.state === "suspended") ctx.resume(); }
+
+// ── Drum synthesizers ────────────────────────────────────────────────────────
+function kick() {
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.frequency.setValueAtTime(160, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.45);
+  g.gain.setValueAtTime(vol * 1.0, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+  o.start(); o.stop(ctx.currentTime + 0.45);
 }
 
-// play function
-function play(sound) {
-    const audio = sounds[sound].cloneNode();
-    audio.play();
+function snare() {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 2000;
+  const g = ctx.createGain();
+  src.connect(f); f.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(vol * 0.75, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+  src.start(); src.stop(ctx.currentTime + 0.3);
+
+  // tonal body
+  const o = ctx.createOscillator(); const og = ctx.createGain();
+  o.connect(og); og.connect(ctx.destination);
+  o.frequency.value = 200;
+  og.gain.setValueAtTime(vol * 0.4, ctx.currentTime);
+  og.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+  o.start(); o.stop(ctx.currentTime + 0.12);
 }
 
-// detect zone
-function detectZone(x, y) {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    const col = x < width/3 ? 0 : x < (2*width/3) ? 1 : 2;
-    const row = y < height/2 ? 0 : 1;
-
-    const zones = [
-        ["TL","TM","TR"],
-        ["BL","BM","BR"]
-    ];
-
-    return zones[row][col];
+function hihat() {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 9000;
+  const g = ctx.createGain();
+  src.connect(f); f.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(vol * 0.5, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+  src.start(); src.stop(ctx.currentTime + 0.1);
 }
 
-// visual feedback
-function flashZone(zone) {
-    const div = document.createElement("div");
-    div.className = "zone active";
-
-    const w = window.innerWidth / 3;
-    const h = window.innerHeight / 2;
-
-    const pos = {
-        "TL":[0,0],"TM":[1,0],"TR":[2,0],
-        "BL":[0,1],"BM":[1,1],"BR":[2,1]
-    };
-
-    const [cx, cy] = pos[zone];
-
-    div.style.left = (cx*w) + "px";
-    div.style.top = (cy*h) + "px";
-    div.style.width = w + "px";
-    div.style.height = h + "px";
-
-    padArea.appendChild(div);
-
-    setTimeout(()=>div.remove(), 100);
+function clap() {
+  [0, 14, 28].forEach(ms => {
+    setTimeout(() => {
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource(); src.buffer = buf;
+      const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1100; f.Q.value = 0.5;
+      const g = ctx.createGain();
+      src.connect(f); f.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(vol * 0.65, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+      src.start(); src.stop(ctx.currentTime + 0.08);
+    }, ms);
+  });
 }
 
-// touch support
-padArea.addEventListener("touchstart", e => {
-    const touch = e.touches[0];
-    handleInput(touch.clientX, touch.clientY);
+function tom() {
+  const o = ctx.createOscillator(); const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.frequency.setValueAtTime(100, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.35);
+  g.gain.setValueAtTime(vol * 0.9, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+  o.start(); o.stop(ctx.currentTime + 0.35);
+}
+
+function crash() {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.9, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 5000;
+  const g = ctx.createGain();
+  src.connect(f); f.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(vol * 0.55, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+  src.start(); src.stop(ctx.currentTime + 0.9);
+}
+
+const soundFn = { Kick:kick, Snare:snare, "Hi-Hat":hihat, Clap:clap, Tom:tom, Crash:crash };
+
+function play(name) { resume(); if (soundFn[name]) soundFn[name](); }
+
+// ── Build pad grid ───────────────────────────────────────────────────────────
+const padgrid = document.getElementById("padgrid");
+PADS.forEach(p => {
+  const c = document.createElement("div");
+  c.className = "pcell"; c.id = "cell-" + p.id;
+  c.innerHTML = `<div class="pn">${p.name}</div><div class="pk">Key: ${p.key}</div>`;
+  padgrid.appendChild(c);
 });
 
-// mouse / trackpad click
-padArea.addEventListener("mousedown", e => {
-    handleInput(e.clientX, e.clientY);
+// Build zone labels inside tracker
+const tracker = document.getElementById("tracker");
+const POS = { TL:[0,0], TM:[1,0], TR:[2,0], BL:[0,1], BM:[1,1], BR:[2,1] };
+PADS.forEach(p => {
+  const [cx, cy] = POS[p.id];
+  const lbl = document.createElement("div");
+  lbl.className = "zone-lbl";
+  lbl.style.left = (cx * 33.33) + "%";
+  lbl.style.top = (cy * 50) + "%";
+  lbl.style.width = "33.33%";
+  lbl.style.height = "50%";
+  lbl.innerHTML = `<strong>${p.name}</strong><span>${p.key}</span>`;
+  tracker.appendChild(lbl);
 });
 
-// main handler
-function handleInput(x, y) {
-    const zone = detectZone(x, y);
-    const sound = soundsMap[zone];
-
-    play(sound);
-    flashZone(zone);
+// ── Zone detection ───────────────────────────────────────────────────────────
+function getZone(x, y) {
+  const r = tracker.getBoundingClientRect();
+  const rx = x - r.left, ry = y - r.top;
+  const col = rx < r.width/3 ? 0 : rx < 2*r.width/3 ? 1 : 2;
+  const row = ry < r.height/2 ? 0 : 1;
+  return { pad: PADS[row*3+col], col, row };
 }
 
-// keyboard support
+const dot = document.getElementById("dot");
+let lastZone = null;
+const cooldown = {};
+
+function flashEffect(pad, col, row) {
+  const r = tracker.getBoundingClientRect();
+  const w = r.width/3, h = r.height/2;
+  const el = document.createElement("div");
+  el.className = "flash";
+  el.style.cssText = `left:${col*w}px;top:${row*h}px;width:${w}px;height:${h}px;background:${pad.color}55;`;
+  tracker.appendChild(el);
+  setTimeout(() => el.remove(), 200);
+
+  const cell = document.getElementById("cell-" + pad.id);
+  if (cell) { cell.classList.add("lit"); setTimeout(() => cell.classList.remove("lit"), 200); }
+}
+
+function moveDot(x, y, color) {
+  const r = tracker.getBoundingClientRect();
+  dot.style.display = "block";
+  dot.style.left = (x - r.left) + "px";
+  dot.style.top = (y - r.top) + "px";
+  dot.style.background = color;
+}
+
+function trigger(x, y) {
+  const { pad, col, row } = getZone(x, y);
+  const now = Date.now();
+  if (cooldown[pad.id] && now - cooldown[pad.id] < 100) return;
+  cooldown[pad.id] = now;
+  play(pad.name);
+  flashEffect(pad, col, row);
+}
+
+// ── Mouse / trackpad hover ───────────────────────────────────────────────────
+tracker.addEventListener("mousemove", e => {
+  const { pad, col, row } = getZone(e.clientX, e.clientY);
+  moveDot(e.clientX, e.clientY, pad.color);
+  if (lastZone !== pad.id) {
+    lastZone = pad.id;
+    trigger(e.clientX, e.clientY);
+  }
+});
+
+tracker.addEventListener("mouseleave", () => {
+  dot.style.display = "none";
+  lastZone = null;
+});
+
+// ── Touch support ────────────────────────────────────────────────────────────
+tracker.addEventListener("touchmove", e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  const { pad, col, row } = getZone(t.clientX, t.clientY);
+  if (lastZone !== pad.id) {
+    lastZone = pad.id;
+    trigger(t.clientX, t.clientY);
+  }
+}, { passive: false });
+
+tracker.addEventListener("touchend", () => { lastZone = null; });
+
+// ── Keyboard ─────────────────────────────────────────────────────────────────
 document.addEventListener("keydown", e => {
-    const map = {
-        a:"kick", s:"snare", d:"hihat",
-        f:"clap", g:"tom", h:"crash"
-    };
+  const map = { a:"Kick", s:"Snare", d:"Hi-Hat", f:"Clap", g:"Tom", h:"Crash" };
+  const name = map[e.key.toLowerCase()];
+  if (!name) return;
+  play(name);
+  const pad = PADS.find(p => p.name === name);
+  const idx = PADS.indexOf(pad);
+  flashEffect(pad, idx % 3, Math.floor(idx / 3));
+});
 
-    if(map[e.key]) {
-        play(map[e.key]);
-    }
+// ── Volume ───────────────────────────────────────────────────────────────────
+document.getElementById("vol").addEventListener("input", e => {
+  vol = parseFloat(e.target.value);
+  document.getElementById("volout").textContent = Math.round(vol * 100) + "%";
 });
 </script>
-
 </body>
 </html>
