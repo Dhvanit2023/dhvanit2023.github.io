@@ -1,75 +1,253 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dhvanit Patel Website</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>Dhvanit Patel - Leave Management App</title>
+
     <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
         body{
             font-family: Arial, sans-serif;
-            background:#f5f5f5;
-            text-align:center;
-            padding:50px;
-        }
-
-        .box{
-            background:white;
-            padding:40px;
-            border-radius:15px;
-            max-width:500px;
-            margin:auto;
-            box-shadow:0 0 10px rgba(0,0,0,0.1);
-        }
-
-        h1{
+            background:#f4f7fb;
             color:#222;
         }
 
-        p{
-            color:#555;
-            font-size:18px;
+        header{
+            background:linear-gradient(135deg,#0078ff,#00bfff);
+            color:white;
+            padding:60px 20px;
+            text-align:center;
         }
 
-        .btn{
+        header h1{
+            font-size:42px;
+            margin-bottom:15px;
+        }
+
+        header p{
+            font-size:20px;
+        }
+
+        .container{
+            width:90%;
+            max-width:1100px;
+            margin:auto;
+            padding:40px 0;
+        }
+
+        .card{
+            background:white;
+            border-radius:15px;
+            padding:35px;
+            margin-bottom:30px;
+            box-shadow:0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .card h2{
+            margin-bottom:20px;
+            color:#0078ff;
+        }
+
+        .features{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            gap:20px;
+            margin-top:20px;
+        }
+
+        .feature-box{
+            background:#f8fbff;
+            padding:20px;
+            border-radius:12px;
+            border-left:5px solid #0078ff;
+        }
+
+        .feature-box h3{
+            margin-bottom:10px;
+        }
+
+        .download-btn{
             display:inline-block;
-            margin-top:25px;
-            padding:15px 30px;
             background:#0078ff;
             color:white;
             text-decoration:none;
+            padding:16px 35px;
             border-radius:10px;
             font-size:18px;
             font-weight:bold;
+            margin-top:20px;
+            transition:0.3s;
         }
 
-        .btn:hover{
+        .download-btn:hover{
             background:#005ed1;
         }
+
+        .screenshots{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            gap:20px;
+            margin-top:20px;
+        }
+
+        .screenshots img{
+            width:100%;
+            border-radius:12px;
+            box-shadow:0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        footer{
+            background:#111;
+            color:white;
+            text-align:center;
+            padding:25px;
+            margin-top:40px;
+        }
+
+        @media(max-width:600px){
+
+            header h1{
+                font-size:30px;
+            }
+
+            header p{
+                font-size:16px;
+            }
+
+        }
+
     </style>
 </head>
 
 <body>
 
-    <div class="box">
+    <header>
 
-        <h1>Hello Bro 🔥</h1>
-
-        <p>
-            Very soon I will push my running site on this domain.
-        </p>
-
-        <h2>Leave Management Android App</h2>
+        <h1>Dhvanit Patel 🚀</h1>
 
         <p>
-            Click below to download APK
+            Leave Management Android Application
         </p>
 
-        <a class="btn"
-           href="https://github.com/Dhvanit2023/SMS-Getway/releases/download/v2.1/leave_m_app.apk">
-            Download APK
-        </a>
+    </header>
+
+    <div class="container">
+
+        <div class="card">
+
+            <h2>About Application</h2>
+
+            <p>
+                This is a smart Leave Management Android Application developed for students and organizations.
+                Users can apply for leave, manage requests, track approvals, and monitor leave records easily.
+            </p>
+
+            <br>
+
+            <p>
+                The app is developed using modern Android technologies with user-friendly UI and fast performance.
+            </p>
+
+            <a class="download-btn"
+               href="https://github.com/Dhvanit2023/SMS-Getway/releases/download/v2.1/leave_m_app.apk">
+               📥 Download APK
+            </a>
+
+        </div>
+
+        <div class="card">
+
+            <h2>Application Features</h2>
+
+            <div class="features">
+
+                <div class="feature-box">
+                    <h3>📅 Leave Request</h3>
+                    <p>
+                        Apply leave quickly using simple forms.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🔔 Notifications</h3>
+                    <p>
+                        Receive leave approval and status updates.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>📊 Dashboard</h3>
+                    <p>
+                        View leave history and records in one place.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🔐 Secure Login</h3>
+                    <p>
+                        User authentication for better security.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>⚡ Fast Performance</h3>
+                    <p>
+                        Lightweight and optimized Android application.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>📱 Mobile Friendly</h3>
+                    <p>
+                        Works smoothly on Android devices.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+       
+        <div class="card">
+
+            <h2>Developer Information</h2>
+
+            <p>
+                Developer: Dhvanit Patel
+            </p>
+
+            <br>
+
+            <p>
+                Android Developer | ASP.NET Developer | AI & ML Student
+            </p>
+
+            <br>
+
+            <p>
+                GitHub:
+                <a href="https://github.com/Dhvanit2023">
+                    github.com/Dhvanit2023
+                </a>
+            </p>
+
+        </div>
 
     </div>
+
+    <footer>
+
+        © 2026 Dhvanit Patel | All Rights Reserved
+
+    </footer>
 
 </body>
 </html>
